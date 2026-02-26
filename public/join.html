@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+        <title>Ofir's Karaoke</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: "Inter", system-ui, sans-serif;
+                background: #fdfbf7;
+                color: #3d3429;
+                min-height: 100vh;
+                min-height: 100dvh;
+                -webkit-font-smoothing: antialiased;
+            }
+
+            /* Name input screen */
+            .name-screen {
+                min-height: 100vh;
+                min-height: 100dvh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 2rem;
+                background: linear-gradient(180deg, #fdfbf7 0%, #fef3e2 100%);
+            }
+
+            /* Category pills */
+            .cat-pill {
+                padding: 7px 16px;
+                border-radius: 20px;
+                font-size: 13px;
+                font-weight: 600;
+                border: 1.5px solid #e5ddd3;
+                background: white;
+                color: #6b5e50;
+                cursor: pointer;
+                transition: all 0.15s;
+                white-space: nowrap;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .cat-pill.active {
+                background: #d97757;
+                color: white;
+                border-color: #d97757;
+            }
+
+            /* Song card */
+            .song-card {
+                background: white;
+                border: 1px solid #ece5db;
+                border-radius: 14px;
+                padding: 14px 12px 14px 16px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                transition: transform 0.1s;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .song-card:active {
+                transform: scale(0.98);
+            }
+
+            /* Add button */
+            .add-btn {
+                background: #d97757;
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 38px;
+                height: 38px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 22px;
+                line-height: 1;
+                cursor: pointer;
+                flex-shrink: 0;
+                transition: all 0.15s;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .add-btn:active {
+                transform: scale(0.85);
+                background: #c4613f;
+            }
+            .add-btn.added {
+                background: #5a9e3e;
+            }
+
+            /* Search */
+            .search-box {
+                background: white;
+                border: 1.5px solid #e5ddd3;
+                border-radius: 14px;
+                padding: 13px 16px 13px 42px;
+                font-size: 15px;
+                width: 100%;
+                outline: none;
+                font-family: inherit;
+                color: #3d3429;
+                -webkit-appearance: none;
+            }
+            .search-box:focus {
+                border-color: #d97757;
+            }
+            .search-box::placeholder {
+                color: #bdb3a5;
+            }
+
+            /* Toast */
+            .toast {
+                position: fixed;
+                bottom: 24px;
+                left: 50%;
+                transform: translateX(-50%) translateY(100px);
+                background: #3d3429;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 14px;
+                font-weight: 600;
+                font-size: 14px;
+                transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+                z-index: 100;
+                white-space: nowrap;
+            }
+            .toast.show {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            /* Now playing bar */
+            .np-bar {
+                background: linear-gradient(135deg, #d97757, #e8956c);
+                color: white;
+                padding: 11px 16px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 13px;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .np-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: white;
+                flex-shrink: 0;
+                animation: pulse 1.5s ease-in-out infinite;
+            }
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.3;
+                }
+            }
+
+            /* Queue overlay */
+            .queue-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.45);
+                z-index: 50;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.25s;
+            }
+            .queue-overlay.show {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .queue-sheet {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: #fdfbf7;
+                border-radius: 20px 20px 0 0;
+                max-height: 75vh;
+                max-height: 75dvh;
+                overflow-y: auto;
+                transform: translateY(100%);
+                transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            }
+            .queue-overlay.show .queue-sheet {
+                transform: translateY(0);
+            }
+
+            /* Name input */
+            .name-input {
+                background: white;
+                border: 2px solid #e5ddd3;
+                border-radius: 16px;
+                padding: 14px 20px;
+                font-size: 18px;
+                width: 100%;
+                max-width: 280px;
+                text-align: center;
+                outline: none;
+                font-family: inherit;
+                color: #3d3429;
+                -webkit-appearance: none;
+            }
+            .name-input:focus {
+                border-color: #d97757;
+            }
+            .name-input::placeholder {
+                color: #c5b9aa;
+            }
+
+            .go-btn {
+                background: #d97757;
+                color: white;
+                font-weight: 700;
+                padding: 14px 40px;
+                border-radius: 16px;
+                font-size: 17px;
+                border: none;
+                cursor: pointer;
+                transition: all 0.15s;
+                font-family: inherit;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .go-btn:active {
+                transform: scale(0.95);
+                background: #c4613f;
+            }
+            .go-btn:disabled {
+                opacity: 0.35;
+            }
+
+            /* Queue badge */
+            .q-badge {
+                background: #d97757;
+                color: white;
+                font-size: 11px;
+                font-weight: 700;
+                min-width: 18px;
+                height: 18px;
+                border-radius: 9px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- ===== NAME SCREEN ===== -->
+        <div id="name-screen" class="name-screen">
+            <div class="text-6xl mb-5">🎤</div>
+            <h1 class="text-2xl font-black mb-1">Ofir's Karaoke</h1>
+            <p class="text-sm text-[#a89b8c] mb-8">What's your name?</p>
+            <input
+                id="name-input"
+                type="text"
+                class="name-input mb-4"
+                placeholder="Your name"
+                autocomplete="off"
+                autocapitalize="words"
+            />
+            <button id="go-btn" class="go-btn" onclick="saveName()" disabled>
+                Let's Go!
+            </button>
+        </div>
+
+        <!-- ===== MAIN SCREEN ===== -->
+        <div id="main-screen" class="hidden">
+            <!-- Now playing -->
+            <div id="np-bar" class="np-bar hidden sticky top-0 z-20">
+                <div class="np-dot"></div>
+                <span class="font-semibold truncate flex-1" id="np-text"></span>
+            </div>
+
+            <!-- Header + search (sticky) -->
+            <div
+                id="sticky-header"
+                class="px-4 pt-4 pb-1 sticky top-0 bg-[#fdfbf7] z-10"
+            >
+                <div class="flex items-center justify-between mb-4">
+                    <h1 class="text-xl font-black">Pick a song</h1>
+                    <button
+                        onclick="showQueue()"
+                        class="flex items-center gap-1.5 -mr-1 p-1"
+                    >
+                        <span class="text-sm font-bold text-[#D97757]"
+                            >Queue</span
+                        >
+                        <span id="queue-badge" class="q-badge hidden">0</span>
+                    </button>
+                </div>
+
+                <div class="relative mb-3">
+                    <svg
+                        class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#bdb3a5]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <circle cx="11" cy="11" r="8" />
+                        <path
+                            d="m21 21-4.35-4.35"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                        />
+                    </svg>
+                    <input
+                        type="text"
+                        id="search"
+                        class="search-box"
+                        placeholder="Search songs or artists..."
+                        oninput="filterSongs()"
+                    />
+                </div>
+
+                <div
+                    class="flex gap-2 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-hide"
+                    id="categories"
+                ></div>
+            </div>
+
+            <!-- Song list -->
+            <div class="px-4 pb-24 space-y-2.5" id="song-list"></div>
+        </div>
+
+        <!-- Queue overlay -->
+        <div id="queue-overlay" class="queue-overlay" onclick="hideQueue()">
+            <div class="queue-sheet" onclick="event.stopPropagation()">
+                <div
+                    class="p-4 border-b border-[#ece5db] flex justify-between items-center sticky top-0 bg-[#fdfbf7] z-10 rounded-t-[20px]"
+                >
+                    <h3 class="font-black text-lg">Queue</h3>
+                    <button
+                        onclick="hideQueue()"
+                        class="text-[#a89b8c] text-2xl leading-none px-1"
+                    >
+                        &times;
+                    </button>
+                </div>
+                <div id="queue-content" class="p-4 space-y-2.5 pb-8"></div>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div id="toast" class="toast"></div>
+
+        <script>
+            const socket = io();
+            let songs = [];
+            let userName = localStorage.getItem("karaoke-name") || "";
+            let currentCategory = "all";
+            let currentState = { queue: [], currentSong: null };
+
+            // --- Name handling ---
+            const nameInput = document.getElementById("name-input");
+            const goBtn = document.getElementById("go-btn");
+
+            nameInput.value = userName;
+            goBtn.disabled = !userName.trim();
+
+            nameInput.addEventListener("input", () => {
+                goBtn.disabled = !nameInput.value.trim();
+            });
+            nameInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" && nameInput.value.trim()) saveName();
+            });
+
+            // Auto-skip name screen if already set
+            if (userName) {
+                document.getElementById("name-screen").classList.add("hidden");
+                document
+                    .getElementById("main-screen")
+                    .classList.remove("hidden");
+            }
+
+            function saveName() {
+                userName = nameInput.value.trim();
+                if (!userName) return;
+                localStorage.setItem("karaoke-name", userName);
+                document.getElementById("name-screen").classList.add("hidden");
+                document
+                    .getElementById("main-screen")
+                    .classList.remove("hidden");
+            }
+
+            // --- Load songs ---
+            fetch("/api/songs")
+                .then((r) => r.json())
+                .then((data) => {
+                    songs = data;
+                    renderCategories();
+                    filterSongs();
+                });
+
+            // --- Categories ---
+            function renderCategories() {
+                const hasFaves = songs.some((s) => s.favorite);
+                const cats = ["All"];
+                if (hasFaves) cats.push("Ofir's Faves");
+                cats.push(
+                    ...new Set(songs.map((s) => s.category).filter(Boolean)),
+                );
+                document.getElementById("categories").innerHTML = cats
+                    .map((c) => {
+                        const val = c === "All" ? "all" : c;
+                        return `<button class="cat-pill ${val === currentCategory ? "active" : ""}" onclick="setCategory('${val}')">${c}</button>`;
+                    })
+                    .join("");
+            }
+
+            function setCategory(cat) {
+                currentCategory = cat;
+                renderCategories();
+                filterSongs();
+            }
+
+            // --- Song list ---
+            function filterSongs() {
+                const query = document
+                    .getElementById("search")
+                    .value.toLowerCase();
+                const filtered = songs.filter((s) => {
+                    const matchCat =
+                        currentCategory === "all" ||
+                        currentCategory === "Ofir's Faves"
+                            ? currentCategory === "Ofir's Faves"
+                                ? s.favorite
+                                : true
+                            : s.category === currentCategory;
+                    const matchQ =
+                        !query ||
+                        s.title.toLowerCase().includes(query) ||
+                        s.artist.toLowerCase().includes(query);
+                    return matchCat && matchQ;
+                });
+
+                const list = document.getElementById("song-list");
+                if (filtered.length === 0) {
+                    list.innerHTML =
+                        '<p class="text-center text-[#bdb3a5] py-12">No songs found</p>';
+                    return;
+                }
+
+                list.innerHTML = filtered
+                    .map(
+                        (s) => `
+        <div class="song-card">
+          <div class="flex-1 min-w-0">
+            <p class="font-bold text-[15px] leading-tight">${s.favorite ? '<span class="text-red-400 mr-1">&hearts;</span>' : ""}${s.title}</p>
+            <p class="text-xs text-[#a89b8c] mt-0.5">${s.artist}</p>
+          </div>
+          <button class="add-btn" id="btn-${s.id}" onclick="addToQueue(${s.id}, this)">+</button>
+        </div>
+      `,
+                    )
+                    .join("");
+            }
+
+            function addToQueue(songId, btn) {
+                if (!userName) return;
+                socket.emit("addToQueue", { songId, name: userName });
+
+                btn.classList.add("added");
+                btn.innerHTML = "&#10003;";
+                showToast("Added to queue!");
+
+                setTimeout(() => {
+                    btn.classList.remove("added");
+                    btn.innerHTML = "+";
+                }, 2000);
+            }
+
+            // --- Queue ---
+            function showQueue() {
+                document.getElementById("queue-overlay").classList.add("show");
+                renderQueue();
+            }
+
+            function hideQueue() {
+                document
+                    .getElementById("queue-overlay")
+                    .classList.remove("show");
+            }
+
+            function renderQueue() {
+                const { queue, currentSong } = currentState;
+                let html = "";
+
+                if (currentSong) {
+                    html += `
+          <div class="song-card" style="border-color: #D97757;">
+            <div class="np-dot" style="flex-shrink:0;"></div>
+            <div class="flex-1 min-w-0">
+              <p class="font-bold text-[15px] leading-tight">${currentSong.song.title}</p>
+              <p class="text-xs text-[#a89b8c] mt-0.5">${currentSong.song.artist} &middot; ${currentSong.requestedBy}</p>
+            </div>
+            <span class="text-xs text-[#D97757] font-bold flex-shrink-0">NOW</span>
+          </div>`;
+                }
+
+                if (queue.length === 0 && !currentSong) {
+                    html =
+                        '<p class="text-center text-[#bdb3a5] py-10">No songs in queue yet.<br>Pick one and be a legend.</p>';
+                } else {
+                    html += queue
+                        .map(
+                            (entry, i) => `
+          <div class="song-card">
+            <span class="text-[#c5b9aa] text-xs font-mono w-5 text-center flex-shrink-0">${i + 1}</span>
+            <div class="flex-1 min-w-0">
+              <p class="font-bold text-[15px] leading-tight">${entry.song.title}</p>
+              <p class="text-xs text-[#a89b8c] mt-0.5">${entry.song.artist} &middot; ${entry.requestedBy}</p>
+            </div>
+          </div>
+        `,
+                        )
+                        .join("");
+                }
+
+                document.getElementById("queue-content").innerHTML = html;
+            }
+
+            // --- Real-time state ---
+            socket.on("state", (state) => {
+                currentState = state;
+
+                // Now playing bar
+                const npBar = document.getElementById("np-bar");
+                const stickyHeader = document.getElementById("sticky-header");
+                if (state.currentSong) {
+                    npBar.classList.remove("hidden");
+                    document.getElementById("np-text").textContent =
+                        `${state.currentSong.song.title} \u2014 ${state.currentSong.song.artist}`;
+                    stickyHeader.style.top = npBar.offsetHeight + "px";
+                } else {
+                    npBar.classList.add("hidden");
+                    stickyHeader.style.top = "0";
+                }
+
+                // Queue badge
+                const badge = document.getElementById("queue-badge");
+                const total = state.queue.length + (state.currentSong ? 1 : 0);
+                if (total > 0) {
+                    badge.classList.remove("hidden");
+                    badge.textContent = total;
+                } else {
+                    badge.classList.add("hidden");
+                }
+
+                renderQueue();
+            });
+
+            // --- Toast ---
+            function showToast(msg) {
+                const t = document.getElementById("toast");
+                t.textContent = msg;
+                t.classList.add("show");
+                setTimeout(() => t.classList.remove("show"), 2000);
+            }
+        </script>
+    </body>
+</html>

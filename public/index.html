@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Ofir's Karaoke Party</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                background: #0c0c1d;
+                color: white;
+                font-family: "Inter", system-ui, sans-serif;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            body::before {
+                content: "";
+                position: fixed;
+                inset: 0;
+                background:
+                    radial-gradient(
+                        ellipse at 20% 50%,
+                        rgba(255, 107, 107, 0.07) 0%,
+                        transparent 50%
+                    ),
+                    radial-gradient(
+                        ellipse at 80% 50%,
+                        rgba(254, 202, 87, 0.07) 0%,
+                        transparent 50%
+                    ),
+                    radial-gradient(
+                        ellipse at 50% 100%,
+                        rgba(72, 219, 251, 0.04) 0%,
+                        transparent 50%
+                    );
+                z-index: 0;
+                animation: bgPulse 8s ease-in-out infinite alternate;
+            }
+
+            @keyframes bgPulse {
+                from {
+                    opacity: 0.5;
+                }
+                to {
+                    opacity: 1;
+                }
+            }
+
+            .content {
+                position: relative;
+                z-index: 1;
+            }
+
+            /* Gradient animated border for video */
+            .video-glow {
+                padding: 3px;
+                border-radius: 18px;
+                background: linear-gradient(
+                    45deg,
+                    #ff6b6b,
+                    #feca57,
+                    #48dbfb,
+                    #ff9ff3,
+                    #ff6b6b
+                );
+                background-size: 300% 300%;
+                animation: gradientShift 4s ease infinite;
+            }
+
+            @keyframes gradientShift {
+                0%,
+                100% {
+                    background-position: 0% 50%;
+                }
+                50% {
+                    background-position: 100% 50%;
+                }
+            }
+
+            .video-inner {
+                width: 100%;
+                aspect-ratio: 16 / 9;
+                border-radius: 15px;
+                overflow: hidden;
+                background: #000;
+            }
+
+            .video-inner iframe {
+                width: 100%;
+                height: 100%;
+                border: none;
+            }
+
+            /* Pulsing dot */
+            .now-playing-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: #ff6b6b;
+                animation: pulse 1.5s ease-in-out infinite;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                50% {
+                    opacity: 0.4;
+                    transform: scale(1.3);
+                }
+            }
+
+            /* QR glow */
+            .qr-box {
+                box-shadow: 0 0 30px rgba(255, 255, 255, 0.06);
+                border-radius: 16px;
+            }
+
+            /* Queue items */
+            .queue-item {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 10px;
+                padding: 10px 14px;
+            }
+
+            /* Scrollbar */
+            .queue-list::-webkit-scrollbar {
+                width: 4px;
+            }
+            .queue-list::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 2px;
+            }
+
+            /* Idle photo */
+            .photo-ring {
+                border-radius: 50%;
+                padding: 4px;
+                background: linear-gradient(45deg, #ff6b6b, #feca57, #ff9ff3);
+                background-size: 200% 200%;
+                animation: gradientShift 3s ease infinite;
+            }
+
+            /* Notification toast */
+            .notif {
+                position: fixed;
+                top: 24px;
+                right: 24px;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                padding: 14px 20px;
+                border-radius: 14px;
+                transform: translateX(400px);
+                transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+                z-index: 50;
+            }
+            .notif.show {
+                transform: translateX(0);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="content h-screen flex flex-col">
+            <!-- ===== IDLE SCREEN ===== -->
+            <div
+                id="idle-screen"
+                class="flex-1 flex flex-col items-center justify-center gap-6"
+            >
+                <div class="photo-ring">
+                    <img
+                        src="/image.png"
+                        alt="Ofir"
+                        class="w-40 h-40 rounded-full object-cover border-4 border-[#0c0c1d]"
+                    />
+                </div>
+                <div class="text-center">
+                    <h1
+                        class="text-5xl font-black mb-2 bg-gradient-to-r from-[#ff6b6b] via-[#feca57] to-[#ff9ff3] bg-clip-text text-transparent"
+                    >
+                        Happy Birthday Ofir!
+                    </h1>
+                    <p class="text-xl text-white/50">
+                        Grab a drink, pick a song, grab the mic.
+                    </p>
+                </div>
+                <div
+                    class="bg-white p-4 rounded-2xl qr-box mt-4"
+                    id="idle-qr-wrap"
+                >
+                    <canvas id="idle-qr"></canvas>
+                    <div
+                        id="idle-qr-placeholder"
+                        class="w-[220px] h-[220px] bg-gray-100 rounded-lg flex items-center justify-center"
+                    >
+                        <span class="text-gray-400 font-bold text-sm"
+                            >QR CODE</span
+                        >
+                    </div>
+                </div>
+                <p class="text-white/30 text-sm animate-pulse">
+                    Waiting for the first brave soul...
+                </p>
+            </div>
+
+            <!-- ===== PLAYING SCREEN ===== -->
+            <div id="playing-screen" class="flex-1 hidden">
+                <div class="h-full flex">
+                    <!-- Main area -->
+                    <div class="flex-1 flex flex-col p-3 pr-0 min-w-0">
+                        <!-- Top bar -->
+                        <div class="flex items-center gap-3 mb-2 pr-3">
+                            <div class="now-playing-dot"></div>
+                            <span
+                                class="text-white/40 font-semibold text-xs uppercase tracking-widest"
+                                >Now Playing</span
+                            >
+                            <div class="flex-1"></div>
+                            <span
+                                class="text-sm font-bold bg-gradient-to-r from-[#ff6b6b] to-[#feca57] bg-clip-text text-transparent"
+                            >
+                                Ofir's Karaoke
+                            </span>
+                        </div>
+
+                        <!-- Video -->
+                        <div
+                            class="flex-1 flex items-center justify-center pr-3"
+                        >
+                            <div class="video-glow w-full">
+                                <div class="video-inner">
+                                    <div id="youtube-player"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Song info + controls -->
+                        <div
+                            class="flex items-center justify-between py-2 pr-3"
+                        >
+                            <div>
+                                <h3
+                                    id="current-title"
+                                    class="text-xl font-extrabold"
+                                ></h3>
+                                <p class="mt-0.5">
+                                    <span
+                                        id="current-artist"
+                                        class="text-white/40 text-sm"
+                                    ></span>
+                                    <span class="text-white/20 mx-2"
+                                        >&middot;</span
+                                    >
+                                    <span
+                                        id="current-requester"
+                                        class="text-[#feca57] font-semibold text-sm"
+                                    ></span>
+                                </p>
+                            </div>
+                            <button
+                                onclick="skipSong()"
+                                class="px-5 py-2.5 bg-white/10 hover:bg-white/15 rounded-xl text-sm font-semibold transition-colors cursor-pointer flex-shrink-0"
+                            >
+                                Next Song &rarr;
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div
+                        class="w-60 flex-shrink-0 bg-white/[0.03] border-l border-white/10 flex flex-col"
+                    >
+                        <!-- QR -->
+                        <div
+                            class="flex flex-col items-center p-4 border-b border-white/10"
+                        >
+                            <div
+                                class="bg-white p-2 rounded-xl"
+                                id="sidebar-qr-wrap"
+                            >
+                                <canvas id="sidebar-qr"></canvas>
+                                <div
+                                    id="sidebar-qr-placeholder"
+                                    class="w-[130px] h-[130px] bg-gray-100 rounded flex items-center justify-center"
+                                >
+                                    <span
+                                        class="text-gray-400 font-bold text-[10px]"
+                                        >QR CODE</span
+                                    >
+                                </div>
+                            </div>
+                            <p class="text-white/25 text-[11px] mt-2">
+                                Scan to add songs
+                            </p>
+                        </div>
+
+                        <!-- Queue header -->
+                        <div
+                            class="flex items-center justify-between px-4 pt-4 pb-2"
+                        >
+                            <h4
+                                class="font-bold text-white/50 text-xs uppercase tracking-widest"
+                            >
+                                Up Next
+                            </h4>
+                            <span
+                                id="queue-count"
+                                class="text-white/25 text-xs"
+                            ></span>
+                        </div>
+
+                        <!-- Queue list -->
+                        <div
+                            class="queue-list flex-1 overflow-y-auto px-4 pb-4 space-y-2"
+                            id="queue-list"
+                        >
+                            <p class="text-white/20 text-sm text-center py-8">
+                                Queue is empty
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification -->
+        <div id="notif" class="notif">
+            <span id="notif-text" class="text-sm font-semibold"></span>
+        </div>
+
+        <!-- YouTube IFrame API -->
+        <script>
+            var tag = document.createElement("script");
+            tag.src = "https://www.youtube.com/iframe_api";
+            var firstScriptTag = document.getElementsByTagName("script")[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        </script>
+
+        <script>
+            const socket = io();
+            let player = null;
+            let playerReady = false;
+            let currentState = { queue: [], currentSong: null };
+            let currentVideoId = null;
+
+            // --- YouTube Player ---
+            function onYouTubeIframeAPIReady() {
+                player = new YT.Player("youtube-player", {
+                    width: "100%",
+                    height: "100%",
+                    playerVars: {
+                        autoplay: 1,
+                        controls: 1,
+                        modestbranding: 1,
+                        rel: 0,
+                    },
+                    events: {
+                        onReady: () => {
+                            playerReady = true;
+                            if (currentState.currentSong) {
+                                const vid = extractYoutubeId(
+                                    currentState.currentSong.song.youtube,
+                                );
+                                if (vid) {
+                                    currentVideoId = vid;
+                                    const startAt = currentState.currentSong.song.key || 0;
+                                    player.loadVideoById({ videoId: vid, startSeconds: startAt });
+                                }
+                            }
+                        },
+                        onStateChange: (e) => {
+                            if (e.data === YT.PlayerState.ENDED) {
+                                socket.emit("nextSong");
+                            }
+                        },
+                        onError: (e) => {
+                            console.error("YouTube error:", e.data);
+                            showNotif("Video unavailable — check the YouTube ID");
+                        },
+                    },
+                });
+            }
+
+            function extractYoutubeId(url) {
+                if (!url) return null;
+                const match = url.match(
+                    /(?:youtube\.com\/watch\?v=|youtu\.be\/|^)([a-zA-Z0-9_-]{11})/,
+                );
+                return match ? match[1] : url.length === 11 ? url : null;
+            }
+
+            // --- QR Code ---
+            async function generateQR() {
+                try {
+                    const res = await fetch("/api/ip");
+                    const { ip, port } = await res.json();
+                    const joinUrl = `http://${ip}:${port}/join.html`;
+
+                    await QRCode.toCanvas(
+                        document.getElementById("idle-qr"),
+                        joinUrl,
+                        {
+                            width: 220,
+                            margin: 0,
+                            color: { dark: "#1a1a2e", light: "#ffffff" },
+                        },
+                    );
+                    document.getElementById(
+                        "idle-qr-placeholder",
+                    ).style.display = "none";
+
+                    await QRCode.toCanvas(
+                        document.getElementById("sidebar-qr"),
+                        joinUrl,
+                        {
+                            width: 130,
+                            margin: 0,
+                            color: { dark: "#1a1a2e", light: "#ffffff" },
+                        },
+                    );
+                    document.getElementById(
+                        "sidebar-qr-placeholder",
+                    ).style.display = "none";
+                } catch (e) {
+                    console.error("QR generation failed:", e);
+                    document.getElementById("idle-qr").style.display = "none";
+                    document.getElementById("sidebar-qr").style.display =
+                        "none";
+                }
+            }
+
+            // --- State Handling ---
+            socket.on("state", (state) => {
+                currentState = state;
+                render();
+            });
+
+            function render() {
+                const { currentSong, queue } = currentState;
+
+                if (currentSong) {
+                    document
+                        .getElementById("idle-screen")
+                        .classList.add("hidden");
+                    document
+                        .getElementById("playing-screen")
+                        .classList.remove("hidden");
+
+                    document.getElementById("current-title").textContent =
+                        currentSong.song.title;
+                    document.getElementById("current-artist").textContent =
+                        currentSong.song.artist;
+                    document.getElementById("current-requester").textContent =
+                        `Requested by ${currentSong.requestedBy}`;
+
+                    const vid = extractYoutubeId(currentSong.song.youtube);
+                    if (playerReady && vid && vid !== currentVideoId) {
+                        currentVideoId = vid;
+                        const startAt = currentSong.song.key || 0;
+                        player.loadVideoById({ videoId: vid, startSeconds: startAt });
+                    }
+                } else {
+                    document
+                        .getElementById("idle-screen")
+                        .classList.remove("hidden");
+                    document
+                        .getElementById("playing-screen")
+                        .classList.add("hidden");
+                    currentVideoId = null;
+                    if (playerReady) {
+                        try {
+                            player.stopVideo();
+                        } catch {}
+                    }
+                }
+
+                // Queue sidebar
+                const queueList = document.getElementById("queue-list");
+                const countEl = document.getElementById("queue-count");
+
+                if (queue.length === 0) {
+                    queueList.innerHTML =
+                        '<p class="text-white/20 text-sm text-center py-8">Queue is empty</p>';
+                    countEl.textContent = "";
+                } else {
+                    countEl.textContent =
+                        queue.length +
+                        " song" +
+                        (queue.length !== 1 ? "s" : "");
+                    queueList.innerHTML = queue
+                        .map(
+                            (entry, i) => `
+          <div class="queue-item">
+            <div class="flex items-center gap-2">
+              <span class="text-white/20 text-xs font-mono w-4 text-right">${i + 1}</span>
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold text-sm truncate">${entry.song.title}</p>
+                <p class="text-white/30 text-xs truncate">${entry.song.artist} &middot; ${entry.requestedBy}</p>
+              </div>
+            </div>
+          </div>
+        `,
+                        )
+                        .join("");
+                }
+            }
+
+            function skipSong() {
+                currentVideoId = null;
+                socket.emit("nextSong");
+            }
+
+            function showNotif(text) {
+                const el = document.getElementById("notif");
+                document.getElementById("notif-text").textContent = text;
+                el.classList.add("show");
+                setTimeout(() => el.classList.remove("show"), 3000);
+            }
+
+            // --- Init ---
+            generateQR();
+        </script>
+    </body>
+</html>

@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <title>Dashboard - Ofir's Karaoke</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family: "Inter", system-ui, sans-serif;
+                background: #fdfbf7;
+                color: #3d3429;
+                min-height: 100vh;
+            }
+
+            .tab-btn {
+                padding: 8px 20px;
+                border-radius: 10px;
+                font-size: 14px;
+                font-weight: 600;
+                border: 1.5px solid #e5ddd3;
+                background: white;
+                color: #6b5e50;
+                cursor: pointer;
+                transition: all 0.15s;
+            }
+            .tab-btn.active {
+                background: #d97757;
+                color: white;
+                border-color: #d97757;
+            }
+
+            .form-input {
+                background: white;
+                border: 1.5px solid #e5ddd3;
+                border-radius: 10px;
+                padding: 10px 14px;
+                font-size: 14px;
+                outline: none;
+                font-family: inherit;
+                color: #3d3429;
+            }
+            .form-input:focus {
+                border-color: #d97757;
+            }
+            .form-input::placeholder {
+                color: #bdb3a5;
+            }
+
+            select.form-input {
+                -webkit-appearance: none;
+                appearance: none;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+            }
+            th {
+                text-align: left;
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: #a89b8c;
+                font-weight: 700;
+                padding: 10px 12px;
+                border-bottom: 2px solid #ece5db;
+            }
+            td {
+                padding: 10px 12px;
+                font-size: 14px;
+                border-bottom: 1px solid #f0ebe4;
+                vertical-align: middle;
+            }
+            tr:hover td {
+                background: #fef9f3;
+            }
+
+            .del-btn {
+                background: none;
+                border: 1px solid #e5ddd3;
+                color: #c4613f;
+                border-radius: 8px;
+                padding: 4px 10px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.15s;
+            }
+            .del-btn:hover {
+                background: #fef2f2;
+                border-color: #fecaca;
+            }
+
+            .add-btn {
+                background: #d97757;
+                color: white;
+                font-weight: 700;
+                padding: 10px 24px;
+                border-radius: 10px;
+                font-size: 14px;
+                border: none;
+                cursor: pointer;
+                transition: all 0.15s;
+                font-family: inherit;
+            }
+            .add-btn:active {
+                transform: scale(0.97);
+            }
+            .add-btn:disabled {
+                opacity: 0.4;
+            }
+
+            .badge {
+                display: inline-block;
+                padding: 2px 8px;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 700;
+            }
+
+            .request-card {
+                background: white;
+                border: 1px solid #ece5db;
+                border-radius: 12px;
+                padding: 14px 16px;
+            }
+
+            .toast {
+                position: fixed;
+                bottom: 24px;
+                left: 50%;
+                transform: translateX(-50%) translateY(100px);
+                background: #3d3429;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 14px;
+                font-weight: 600;
+                font-size: 14px;
+                transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+                z-index: 100;
+                white-space: nowrap;
+            }
+            .toast.show {
+                transform: translateX(-50%) translateY(0);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+            <!-- Header -->
+            <div class="mb-5">
+                <h1 class="text-xl sm:text-2xl font-black">
+                    Ofir's Karaoke Dashboard
+                </h1>
+                <p class="text-sm text-[#a89b8c] mb-3">
+                    Manage songs, view requests
+                </p>
+                <div class="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+                    <button
+                        class="tab-btn active whitespace-nowrap"
+                        data-tab="songs"
+                        onclick="switchTab('songs')"
+                    >
+                        All Songs
+                    </button>
+                    <button
+                        class="tab-btn whitespace-nowrap"
+                        data-tab="requests"
+                        onclick="switchTab('requests')"
+                    >
+                        Requests <span id="req-count-badge"></span>
+                    </button>
+                    <button
+                        class="tab-btn whitespace-nowrap"
+                        data-tab="add"
+                        onclick="switchTab('add')"
+                    >
+                        Add Song
+                    </button>
+                </div>
+            </div>
+
+            <!-- ===== SONGS TAB ===== -->
+            <div id="tab-songs">
+                <div class="mb-4">
+                    <input
+                        type="text"
+                        class="form-input w-full"
+                        placeholder="Search songs..."
+                        id="song-search"
+                        oninput="renderSongs()"
+                    />
+                </div>
+                <!-- Desktop table -->
+                <div
+                    class="hidden sm:block bg-white rounded-xl border border-[#ece5db] overflow-hidden"
+                >
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Artist</th>
+                                    <th>Category</th>
+                                    <th>YouTube</th>
+                                    <th>Fav</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="songs-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Mobile cards -->
+                <div class="sm:hidden space-y-2" id="songs-cards"></div>
+                <p class="text-xs text-[#bdb3a5] mt-3" id="songs-count"></p>
+            </div>
+
+            <!-- ===== REQUESTS TAB ===== -->
+            <div id="tab-requests" class="hidden">
+                <div class="space-y-3" id="requests-list">
+                    <p class="text-center text-[#bdb3a5] py-10">Loading...</p>
+                </div>
+            </div>
+
+            <!-- ===== ADD SONG TAB ===== -->
+            <div id="tab-add" class="hidden">
+                <div
+                    class="bg-white rounded-xl border border-[#ece5db] p-6 max-w-lg"
+                >
+                    <h3 class="font-bold text-lg mb-4">Add a new song</h3>
+                    <form id="add-form" class="space-y-3">
+                        <input
+                            type="text"
+                            id="add-title"
+                            class="form-input w-full"
+                            placeholder="Song title"
+                            required
+                        />
+                        <input
+                            type="text"
+                            id="add-artist"
+                            class="form-input w-full"
+                            placeholder="Artist"
+                            required
+                        />
+                        <input
+                            type="text"
+                            id="add-youtube"
+                            class="form-input w-full"
+                            placeholder="YouTube URL or ID (optional)"
+                        />
+                        <input
+                            type="number"
+                            id="add-key"
+                            class="form-input w-full"
+                            placeholder="Start at (seconds, default 0)"
+                            min="0"
+                        />
+                        <select id="add-category" class="form-input w-full">
+                            <option value="">Select category...</option>
+                            <option value="Pop">Pop</option>
+                            <option value="Rock">Rock</option>
+                            <option value="Classics">Classics</option>
+                            <option value="New Hits">New Hits</option>
+                            <option value="Duets">Duets</option>
+                            <option value="Soundtracks">Soundtracks</option>
+                            <option value="Hip-Hop">Hip-Hop</option>
+                        </select>
+                        <label
+                            class="flex items-center gap-2 text-sm cursor-pointer"
+                        >
+                            <input
+                                type="checkbox"
+                                id="add-favorite"
+                                class="w-4 h-4 accent-[#D97757]"
+                            />
+                            <span>Ofir's Favorite</span>
+                        </label>
+                        <div class="pt-2">
+                            <button
+                                type="submit"
+                                class="add-btn"
+                                id="add-submit"
+                            >
+                                Add Song
+                            </button>
+                        </div>
+                    </form>
+                    <div
+                        id="add-success"
+                        class="mt-4 hidden text-sm font-semibold text-green-700 bg-green-50 border border-green-200 rounded-lg p-3"
+                    ></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div id="toast" class="toast"></div>
+
+        <script>
+            let allSongs = [];
+            let allRequests = [];
+
+            // --- Tab switching ---
+            function switchTab(tab) {
+                document
+                    .querySelectorAll("[data-tab]")
+                    .forEach((b) =>
+                        b.classList.toggle("active", b.dataset.tab === tab),
+                    );
+                document
+                    .getElementById("tab-songs")
+                    .classList.toggle("hidden", tab !== "songs");
+                document
+                    .getElementById("tab-requests")
+                    .classList.toggle("hidden", tab !== "requests");
+                document
+                    .getElementById("tab-add")
+                    .classList.toggle("hidden", tab !== "add");
+
+                if (tab === "requests") loadRequests();
+            }
+
+            // --- Songs ---
+            async function loadSongs() {
+                const res = await fetch("/api/songs");
+                allSongs = await res.json();
+                renderSongs();
+            }
+
+            function renderSongs() {
+                const q = document
+                    .getElementById("song-search")
+                    .value.toLowerCase();
+                const filtered = allSongs.filter(
+                    (s) =>
+                        !q ||
+                        s.title.toLowerCase().includes(q) ||
+                        s.artist.toLowerCase().includes(q) ||
+                        (s.category || "").toLowerCase().includes(q),
+                );
+
+                const tbody = document.getElementById("songs-tbody");
+                const cards = document.getElementById("songs-cards");
+                if (filtered.length === 0) {
+                    tbody.innerHTML =
+                        '<tr><td colspan="7" class="text-center text-[#bdb3a5] py-8">No songs found</td></tr>';
+                    cards.innerHTML =
+                        '<p class="text-center text-[#bdb3a5] py-8">No songs found</p>';
+                } else {
+                    // Desktop table
+                    tbody.innerHTML = filtered
+                        .map(
+                            (s) => `
+          <tr>
+            <td class="text-[#bdb3a5] text-xs font-mono">${s.id}</td>
+            <td class="font-semibold">${escapeHtml(s.title)}</td>
+            <td class="text-[#6b5e50]">${escapeHtml(s.artist)}</td>
+            <td><span class="badge bg-[#fef3e2] text-[#D97757]">${escapeHtml(s.category || "—")}</span></td>
+            <td class="text-xs text-[#bdb3a5] max-w-[120px] truncate">${s.youtube ? escapeHtml(s.youtube) : '<span class="text-[#d4c9bc]">—</span>'}</td>
+            <td><button class="fav-btn" onclick="toggleFav(${s.id}, ${!s.favorite})" style="cursor:pointer;font-size:18px;background:none;border:none;" title="Toggle favorite">${s.favorite ? '<span class="text-red-400">&#9829;</span>' : '<span class="text-[#d4c9bc]">&#9825;</span>'}</button></td>
+            <td><button class="del-btn" onclick="deleteSong(${s.id})">Delete</button></td>
+          </tr>
+        `,
+                        )
+                        .join("");
+
+                    // Mobile cards
+                    cards.innerHTML = filtered
+                        .map(
+                            (s) => `
+          <div class="request-card flex items-center gap-3">
+            <div class="flex-1 min-w-0">
+              <p class="font-bold text-[15px] leading-tight">${s.favorite ? '<span class="text-red-400 mr-1">&#9829;</span>' : ''}${escapeHtml(s.title)}</p>
+              <p class="text-xs text-[#a89b8c] mt-0.5">${escapeHtml(s.artist)}</p>
+              <span class="badge bg-[#fef3e2] text-[#D97757] mt-1 inline-block">${escapeHtml(s.category || "—")}</span>
+            </div>
+            <button onclick="toggleFav(${s.id}, ${!s.favorite})" style="font-size:22px;background:none;border:none;cursor:pointer;padding:4px;" title="Toggle favorite">${s.favorite ? '<span class="text-red-400">&#9829;</span>' : '<span class="text-[#d4c9bc]">&#9825;</span>'}</button>
+            <button class="del-btn" onclick="deleteSong(${s.id})">Del</button>
+          </div>
+        `,
+                        )
+                        .join("");
+                }
+
+                document.getElementById("songs-count").textContent =
+                    `${filtered.length} of ${allSongs.length} songs`;
+            }
+
+            async function deleteSong(id) {
+                if (!confirm("Delete this song?")) return;
+                await fetch(`/api/songs/${id}`, { method: "DELETE" });
+                showToast("Song deleted");
+                loadSongs();
+            }
+
+            async function toggleFav(id, fav) {
+                await fetch(`/api/songs/${id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ favorite: fav }),
+                });
+                loadSongs();
+            }
+
+            // --- Requests ---
+            async function loadRequests() {
+                const res = await fetch("/api/requests");
+                allRequests = await res.json();
+                renderRequests();
+            }
+
+            function renderRequests() {
+                const list = document.getElementById("requests-list");
+                const badge = document.getElementById("req-count-badge");
+                badge.textContent =
+                    allRequests.length > 0 ? `(${allRequests.length})` : "";
+
+                if (allRequests.length === 0) {
+                    list.innerHTML =
+                        '<p class="text-center text-[#bdb3a5] py-10">No requests yet</p>';
+                    return;
+                }
+
+                list.innerHTML = allRequests
+                    .slice()
+                    .reverse()
+                    .map(
+                        (r) => `
+        <div class="request-card flex items-start justify-between gap-4">
+          <div>
+            <p class="font-bold text-[15px]">${escapeHtml(r.song)}</p>
+            <p class="text-xs text-[#a89b8c] mt-1">${formatTime(r.timestamp)}</p>
+          </div>
+        </div>
+      `,
+                    )
+                    .join("");
+            }
+
+            // --- Add song ---
+            document
+                .getElementById("add-form")
+                .addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    const btn = document.getElementById("add-submit");
+                    btn.disabled = true;
+
+                    const body = {
+                        title: document
+                            .getElementById("add-title")
+                            .value.trim(),
+                        artist: document
+                            .getElementById("add-artist")
+                            .value.trim(),
+                        youtube: document
+                            .getElementById("add-youtube")
+                            .value.trim(),
+                        key: parseInt(document.getElementById("add-key").value) || 0,
+                        category: document.getElementById("add-category").value,
+                        favorite:
+                            document.getElementById("add-favorite").checked,
+                    };
+
+                    try {
+                        const res = await fetch("/api/songs", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(body),
+                        });
+
+                        if (!res.ok) throw new Error("Failed");
+                        const song = await res.json();
+
+                        document.getElementById("add-form").reset();
+                        const msg = document.getElementById("add-success");
+                        msg.textContent = `Added "${song.title}" by ${song.artist} (ID: ${song.id})`;
+                        msg.classList.remove("hidden");
+                        setTimeout(() => msg.classList.add("hidden"), 4000);
+
+                        showToast("Song added!");
+                        loadSongs();
+                    } catch {
+                        showToast("Failed to add song");
+                    } finally {
+                        btn.disabled = false;
+                    }
+                });
+
+            // --- Helpers ---
+            function escapeHtml(str) {
+                const d = document.createElement("div");
+                d.textContent = str;
+                return d.innerHTML;
+            }
+
+            function formatTime(iso) {
+                if (!iso) return "";
+                const d = new Date(iso);
+                return d.toLocaleString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                });
+            }
+
+            function showToast(msg) {
+                const t = document.getElementById("toast");
+                t.textContent = msg;
+                t.classList.add("show");
+                setTimeout(() => t.classList.remove("show"), 2000);
+            }
+
+            // --- Auto-refresh requests every 10s ---
+            setInterval(() => {
+                if (
+                    !document
+                        .getElementById("tab-requests")
+                        .classList.contains("hidden")
+                ) {
+                    loadRequests();
+                }
+            }, 10000);
+
+            // --- Init ---
+            loadSongs();
+            loadRequests();
+        </script>
+    </body>
+</html>

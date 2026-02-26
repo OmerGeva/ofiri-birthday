@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+        <title>Request a Song - Ofir's Karaoke</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: "Inter", system-ui, sans-serif;
+                background: linear-gradient(180deg, #fdfbf7 0%, #fef3e2 100%);
+                color: #3d3429;
+                min-height: 100vh;
+                min-height: 100dvh;
+                -webkit-font-smoothing: antialiased;
+            }
+
+            .form-input {
+                background: white;
+                border: 1.5px solid #e5ddd3;
+                border-radius: 14px;
+                padding: 13px 16px;
+                font-size: 15px;
+                width: 100%;
+                outline: none;
+                font-family: inherit;
+                color: #3d3429;
+                -webkit-appearance: none;
+            }
+            .form-input:focus {
+                border-color: #d97757;
+            }
+            .form-input::placeholder {
+                color: #bdb3a5;
+            }
+
+            .submit-btn {
+                background: #d97757;
+                color: white;
+                font-weight: 700;
+                padding: 14px 40px;
+                border-radius: 14px;
+                font-size: 16px;
+                border: none;
+                cursor: pointer;
+                width: 100%;
+                transition: all 0.15s;
+                font-family: inherit;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .submit-btn:active {
+                transform: scale(0.97);
+                background: #c4613f;
+            }
+            .submit-btn:disabled {
+                opacity: 0.4;
+                cursor: default;
+            }
+
+            .request-card {
+                background: white;
+                border: 1px solid #ece5db;
+                border-radius: 14px;
+                padding: 14px 16px;
+            }
+
+            .success-msg {
+                background: #f0fdf4;
+                border: 1.5px solid #bbf7d0;
+                border-radius: 14px;
+                padding: 14px 16px;
+                color: #166534;
+                font-weight: 600;
+                font-size: 14px;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="max-w-md mx-auto px-5 py-10">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="text-5xl mb-3">🎤</div>
+                <h1 class="text-2xl font-black mb-1">Ofir's Karaoke</h1>
+                <p class="text-sm text-[#a89b8c]">
+                    Request a song for the party!
+                </p>
+            </div>
+
+            <!-- Success message (hidden by default) -->
+            <div id="success" class="success-msg mb-6 hidden"></div>
+
+            <!-- Form -->
+            <form id="request-form" class="space-y-3 mb-10">
+                <input
+                    type="text"
+                    id="song"
+                    class="form-input"
+                    placeholder="Song you want to hear (title + artist)"
+                    autocomplete="off"
+                    required
+                />
+                <button type="submit" class="submit-btn" id="submit-btn">
+                    Send Request
+                </button>
+            </form>
+
+            <!-- Other requests -->
+            <div>
+                <h2
+                    class="font-bold text-sm text-[#a89b8c] uppercase tracking-wider mb-3"
+                >
+                    Requests so far
+                </h2>
+                <div id="requests-list" class="space-y-2.5">
+                    <p class="text-center text-[#bdb3a5] py-6 text-sm">
+                        Loading...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const form = document.getElementById("request-form");
+            const songInput = document.getElementById("song");
+            const successEl = document.getElementById("success");
+            const submitBtn = document.getElementById("submit-btn");
+
+            // Load existing requests
+            loadRequests();
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const song = songInput.value.trim();
+                if (!song) return;
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = "Sending...";
+
+                try {
+                    const res = await fetch("/api/requests", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ song }),
+                    });
+
+                    if (!res.ok) throw new Error("Failed");
+
+                    songInput.value = "";
+                    successEl.textContent = "Request sent! 🎉";
+                    successEl.classList.remove("hidden");
+                    setTimeout(() => successEl.classList.add("hidden"), 4000);
+
+                    loadRequests();
+                } catch {
+                    successEl.textContent = "Something went wrong, try again.";
+                    successEl.style.background = "#fef2f2";
+                    successEl.style.borderColor = "#fecaca";
+                    successEl.style.color = "#991b1b";
+                    successEl.classList.remove("hidden");
+                    setTimeout(() => {
+                        successEl.classList.add("hidden");
+                        successEl.style.background = "";
+                        successEl.style.borderColor = "";
+                        successEl.style.color = "";
+                    }, 4000);
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = "Send Request";
+                }
+            });
+
+            async function loadRequests() {
+                try {
+                    const res = await fetch("/api/requests");
+                    const requests = await res.json();
+                    const list = document.getElementById("requests-list");
+
+                    if (requests.length === 0) {
+                        list.innerHTML =
+                            '<p class="text-center text-[#bdb3a5] py-6 text-sm">No requests yet — be the first!</p>';
+                        return;
+                    }
+
+                    list.innerHTML = requests
+                        .slice()
+                        .reverse()
+                        .map(
+                            (r) => `
+          <div class="request-card">
+            <p class="font-bold text-[15px] leading-tight">${escapeHtml(r.song)}</p>
+            <p class="text-xs text-[#a89b8c] mt-1">${timeAgo(r.timestamp)}</p>
+          </div>
+        `,
+                        )
+                        .join("");
+                } catch {
+                    document.getElementById("requests-list").innerHTML =
+                        '<p class="text-center text-[#bdb3a5] py-6 text-sm">Could not load requests</p>';
+                }
+            }
+
+            function escapeHtml(str) {
+                const d = document.createElement("div");
+                d.textContent = str;
+                return d.innerHTML;
+            }
+
+            function timeAgo(iso) {
+                const diff = Date.now() - new Date(iso).getTime();
+                const mins = Math.floor(diff / 60000);
+                if (mins < 1) return "just now";
+                if (mins < 60) return mins + "m ago";
+                const hrs = Math.floor(mins / 60);
+                if (hrs < 24) return hrs + "h ago";
+                return Math.floor(hrs / 24) + "d ago";
+            }
+        </script>
+    </body>
+</html>

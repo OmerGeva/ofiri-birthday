@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Ofir's Karaoke Party</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            /* Warm, cozy background */
+            body {
+                background-color: #fdfbf7;
+                color: #4a3f35;
+                font-family: "Georgia", serif; /* A softer, more classic font */
+            }
+
+            /* Polaroid/Paper style cards */
+            .paper-card {
+                background: white;
+                border: 1px solid #eae3d9;
+                border-radius: 8px;
+                box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.04);
+                transition: transform 0.2s;
+            }
+
+            .paper-card:hover {
+                transform: scale(1.02) rotate(-1deg);
+                box-shadow: 4px 8px 15px rgba(0, 0, 0, 0.08);
+            }
+
+            /* The main photo */
+            .polaroid-pic {
+                width: 160px;
+                height: 160px;
+                object-fit: cover;
+                border: 6px solid white;
+                border-bottom: 24px solid white; /* Classic polaroid bottom */
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                transform: rotate(2deg);
+            }
+        </style>
+    </head>
+    <body class="p-6 flex flex-col items-center">
+        <header class="text-center mt-12 mb-10 flex flex-col items-center">
+            <img src="./image.png'" alt="Ofir" class="polaroid-pic mb-6" />
+            <h1 class="text-4xl font-bold tracking-tight mb-2">
+                Happy Birthday Ofir
+            </h1>
+            <p class="text-lg italic text-gray-500">
+                Grab a drink, pick a song, don't hog the mic.
+            </p>
+        </header>
+
+        <a
+            href="WATCH2GETHER_ROOM_LINK"
+            class="paper-card w-full max-w-md p-6 mb-10 text-center block bg-[#FFF4E6] border-[#FFD8A8]"
+        >
+            <h2 class="text-2xl font-bold mb-1 text-[#D97757]">
+                🎤 Add a Song to the TV
+            </h2>
+            <p class="text-sm text-gray-600 font-sans">
+                Search YouTube and queue it up
+            </p>
+        </a>
+
+        <div class="w-full max-w-md font-sans">
+            <h3
+                class="text-xl font-serif font-bold mb-4 border-b-2 border-[#EAE3D9] pb-2"
+            >
+                Idea Folders
+            </h3>
+
+            <div class="grid grid-cols-2 gap-4">
+                <a
+                    href="LINK_TO_PLAYLIST"
+                    class="paper-card p-5 text-center flex flex-col items-center justify-center"
+                >
+                    <span class="text-2xl mb-2">🍷</span>
+                    <span class="font-bold">Songs Ofir Will Yell</span>
+                </a>
+
+                <a
+                    href="LINK_TO_PLAYLIST"
+                    class="paper-card p-5 text-center flex flex-col items-center justify-center"
+                >
+                    <span class="text-2xl mb-2">💔</span>
+                    <span class="font-bold">2000s Heartbreak</span>
+                </a>
+
+                <a
+                    href="LINK_TO_PLAYLIST"
+                    class="paper-card p-5 text-center flex flex-col items-center justify-center"
+                >
+                    <span class="text-2xl mb-2">👯‍♀️</span>
+                    <span class="font-bold">Cheesy Duets</span>
+                </a>
+
+                <a
+                    href="LINK_TO_PLAYLIST"
+                    class="paper-card p-5 text-center flex flex-col items-center justify-center"
+                >
+                    <span class="text-2xl mb-2">🎸</span>
+                    <span class="font-bold">Dad Rock</span>
+                </a>
+            </div>
+        </div>
+
+        <footer class="mt-16 text-center text-gray-400 text-sm font-sans pb-8">
+            Made with love for tomorrow's hangover.
+        </footer>
+    </body>
+</html>

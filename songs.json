@@ -1,0 +1,777 @@
+[
+  {
+    "id": 1,
+    "title": "Don't Go Breaking My Heart",
+    "artist": "Elton John & Kiki Dee",
+    "youtube": "j4xczsYl5DQ",
+    "category": "Duets",
+    "key": 0
+  },
+  {
+    "id": 2,
+    "title": "You're The One That I Want",
+    "artist": "Grease",
+    "youtube": "XLXMaz6iwiE",
+    "category": "Soundtracks",
+    "key": 0
+  },
+  {
+    "id": 3,
+    "title": "Shallow",
+    "artist": "Lady Gaga & Bradley Cooper",
+    "youtube": "pOp3ZwUhLjU",
+    "category": "Duets",
+    "key": 0
+  },
+  {
+    "id": 4,
+    "title": "Mamma Mia",
+    "artist": "ABBA",
+    "youtube": "nBK_LasubHg",
+    "category": "Pop",
+    "key": 9
+  },
+  {
+    "id": 5,
+    "title": "Valerie",
+    "artist": "Amy Winehouse",
+    "youtube": "rKn345EvCiU",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 6,
+    "title": "Don't Stop Me Now",
+    "artist": "Queen",
+    "youtube": "",
+    "category": "Rock",
+    "key": 0
+  },
+  {
+    "id": 7,
+    "title": "...Baby One More Time",
+    "artist": "Britney Spears",
+    "youtube": "VcDrr50sF3I",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 8,
+    "title": "Vampire",
+    "artist": "Olivia Rodrigo",
+    "youtube": "Wdevout49hg",
+    "category": "New Hits",
+    "favorite": true,
+    "key": 0
+  },
+  {
+    "id": 9,
+    "title": "Back to Black",
+    "artist": "Amy Winehouse",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 10,
+    "title": "Stand By Me",
+    "artist": "Ben E. King",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 11,
+    "title": "Livin' on a Prayer",
+    "artist": "Bon Jovi",
+    "youtube": "",
+    "category": "Rock",
+    "key": 0
+  },
+  {
+    "id": 12,
+    "title": "I Want It That Way",
+    "artist": "Backstreet Boys",
+    "youtube": "Jour9Cxc8xM",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 13,
+    "title": "Dancing Queen",
+    "artist": "ABBA",
+    "youtube": "a3vO3thiYV4",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 14,
+    "title": "My Way",
+    "artist": "Frank Sinatra",
+    "youtube": "TFoXx8WmOZE",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 15,
+    "title": "Can't Take My Eyes Off You",
+    "artist": "Frankie Valli",
+    "youtube": "u-y4NiAmHLM",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 16,
+    "title": "Breaking Free",
+    "artist": "High School Musical",
+    "youtube": "W2J5wXGamO8",
+    "category": "Soundtracks",
+    "key": 0
+  },
+  {
+    "id": 17,
+    "title": "Someone Like You",
+    "artist": "Adele",
+    "youtube": "HLICtsnNb9A",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 18,
+    "title": "Flowers",
+    "artist": "Miley Cyrus",
+    "youtube": "BG5bJRa3sBQ",
+    "category": "New Hits",
+    "key": 7
+  },
+  {
+    "id": 19,
+    "title": "Uptown Funk",
+    "artist": "Bruno Mars ft. Mark Ronson",
+    "youtube": "OpRqT1PhPdE",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 20,
+    "title": "A Thousand Miles",
+    "artist": "Vanessa Carlton",
+    "youtube": "qkmid3qTcJU",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 21,
+    "title": "Jailhouse Rock",
+    "artist": "Elvis Presley",
+    "youtube": "",
+    "category": "Rock",
+    "key": 0
+  },
+  {
+    "id": 22,
+    "title": "Take Me Home, Country Roads",
+    "artist": "John Denver",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 23,
+    "title": "Sk8er Boi",
+    "artist": "Avril Lavigne",
+    "youtube": "",
+    "category": "Rock",
+    "key": 0
+  },
+  {
+    "id": 24,
+    "title": "Piano Man",
+    "artist": "Billy Joel",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 25,
+    "title": "Favorite Crime",
+    "artist": "Olivia Rodrigo",
+    "youtube": "",
+    "category": "New Hits",
+    "favorite": true,
+    "key": 0
+  },
+  {
+    "id": 26,
+    "title": "Happier Than Ever",
+    "artist": "Billie Eilish",
+    "youtube": "",
+    "category": "New Hits",
+    "key": 0
+  },
+  {
+    "id": 27,
+    "title": "Happier",
+    "artist": "Olivia Rodrigo",
+    "youtube": "",
+    "category": "New Hits",
+    "favorite": true,
+    "key": 0
+  },
+  {
+    "id": 28,
+    "title": "(I've Had) The Time of My Life",
+    "artist": "Dirty Dancing",
+    "youtube": "",
+    "category": "Soundtracks",
+    "key": 0
+  },
+  {
+    "id": 29,
+    "title": "Billie Jean",
+    "artist": "Michael Jackson",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 30,
+    "title": "YMCA",
+    "artist": "Village People",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 31,
+    "title": "Africa",
+    "artist": "Toto",
+    "youtube": "",
+    "category": "Rock",
+    "key": 0
+  },
+  {
+    "id": 32,
+    "title": "Super Trouper",
+    "artist": "ABBA",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 33,
+    "title": "I Will Survive",
+    "artist": "Gloria Gaynor",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 34,
+    "title": "Girls Just Want to Have Fun",
+    "artist": "Cyndi Lauper",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 35,
+    "title": "Don't You Worry 'Bout a Thing",
+    "artist": "Stevie Wonder",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 36,
+    "title": "Party in the U.S.A.",
+    "artist": "Miley Cyrus",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 37,
+    "title": "American Boy",
+    "artist": "Estelle ft. Kanye West",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 38,
+    "title": "California Dreamin'",
+    "artist": "The Mamas & The Papas",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 39,
+    "title": "Imagine",
+    "artist": "John Lennon",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 40,
+    "title": "Footloose",
+    "artist": "Kenny Loggins",
+    "youtube": "",
+    "category": "Soundtracks",
+    "key": 0
+  },
+  {
+    "id": 41,
+    "title": "Like a Prayer",
+    "artist": "Madonna",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 42,
+    "title": "Unwritten",
+    "artist": "Natasha Bedingfield",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 43,
+    "title": "Man I Need",
+    "artist": "Olivia Dean",
+    "youtube": "",
+    "category": "New Hits",
+    "favorite": true,
+    "key": 0
+  },
+  {
+    "id": 44,
+    "title": "The Fate of Ophelia",
+    "artist": "Taylor Swift",
+    "youtube": "",
+    "category": "New Hits",
+    "key": 0
+  },
+  {
+    "id": 45,
+    "title": "You Belong with Me",
+    "artist": "Taylor Swift",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 46,
+    "title": "Love Story",
+    "artist": "Taylor Swift",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 47,
+    "title": "Waka Waka",
+    "artist": "Shakira",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 48,
+    "title": "Barbie Girl",
+    "artist": "Aqua",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 49,
+    "title": "Without Me",
+    "artist": "Eminem",
+    "youtube": "",
+    "category": "Hip-Hop",
+    "key": 0
+  },
+  {
+    "id": 50,
+    "title": "Lose Yourself",
+    "artist": "Eminem",
+    "youtube": "",
+    "category": "Hip-Hop",
+    "key": 0
+  },
+  {
+    "id": 51,
+    "title": "Grenade",
+    "artist": "Bruno Mars",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 52,
+    "title": "Red Wine Supernova",
+    "artist": "Chappell Roan",
+    "youtube": "",
+    "category": "New Hits",
+    "favorite": true,
+    "key": 0
+  },
+  {
+    "id": 53,
+    "title": "Pink Pony Club",
+    "artist": "Chappell Roan",
+    "youtube": "",
+    "category": "New Hits",
+    "favorite": true,
+    "key": 0
+  },
+  {
+    "id": 54,
+    "title": "Good Luck, Babe!",
+    "artist": "Chappell Roan",
+    "youtube": "",
+    "category": "New Hits",
+    "favorite": true,
+    "key": 0
+  },
+  {
+    "id": 55,
+    "title": "Beautiful Things",
+    "artist": "Benson Boone",
+    "youtube": "",
+    "category": "New Hits",
+    "key": 0
+  },
+  {
+    "id": 56,
+    "title": "Let It Go",
+    "artist": "Idina Menzel (Frozen)",
+    "youtube": "",
+    "category": "Soundtracks",
+    "key": 0
+  },
+  {
+    "id": 57,
+    "title": "Roar",
+    "artist": "Katy Perry",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 58,
+    "title": "Firework",
+    "artist": "Katy Perry",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 59,
+    "title": "Call Me Maybe",
+    "artist": "Carly Rae Jepsen",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 60,
+    "title": "Wrecking Ball",
+    "artist": "Miley Cyrus",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 61,
+    "title": "Memories",
+    "artist": "Maroon 5",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 62,
+    "title": "Super Bass",
+    "artist": "Nicki Minaj",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 63,
+    "title": "Total Eclipse of the Heart",
+    "artist": "Bonnie Tyler",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 64,
+    "title": "Since U Been Gone",
+    "artist": "Kelly Clarkson",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 65,
+    "title": "It's All Coming Back to Me Now",
+    "artist": "Celine Dion",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 66,
+    "title": "It's Raining Men",
+    "artist": "The Weather Girls",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 67,
+    "title": "If I Could Turn Back Time",
+    "artist": "Cher",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 68,
+    "title": "Sweet Caroline",
+    "artist": "Neil Diamond",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 69,
+    "title": "Jessie's Girl",
+    "artist": "Rick Springfield",
+    "youtube": "",
+    "category": "Rock",
+    "key": 0
+  },
+  {
+    "id": 70,
+    "title": "Mr. Brightside",
+    "artist": "The Killers",
+    "youtube": "",
+    "category": "Rock",
+    "key": 0
+  },
+  {
+    "id": 71,
+    "title": "I Wanna Dance With Somebody",
+    "artist": "Whitney Houston",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 72,
+    "title": "Don't Stop Believin'",
+    "artist": "Journey",
+    "youtube": "",
+    "category": "Rock",
+    "key": 0
+  },
+  {
+    "id": 73,
+    "title": "Bad Romance",
+    "artist": "Lady Gaga",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 74,
+    "title": "Nuthin' But a 'G' Thang",
+    "artist": "Dr. Dre",
+    "youtube": "",
+    "category": "Hip-Hop",
+    "key": 0
+  },
+  {
+    "id": 75,
+    "title": "Pour Some Sugar on Me",
+    "artist": "Def Leppard",
+    "youtube": "",
+    "category": "Rock",
+    "key": 0
+  },
+  {
+    "id": 76,
+    "title": "Jolene",
+    "artist": "Dolly Parton",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 77,
+    "title": "No Scrubs",
+    "artist": "TLC",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 78,
+    "title": "Say My Name",
+    "artist": "Destiny's Child",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 79,
+    "title": "Rolling in the Deep",
+    "artist": "Adele",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 80,
+    "title": "Killing Me Softly",
+    "artist": "Fugees",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 81,
+    "title": "Love on Top",
+    "artist": "Beyonce",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 82,
+    "title": "Bye Bye Bye",
+    "artist": "NSYNC",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 83,
+    "title": "Just a Friend",
+    "artist": "Biz Markie",
+    "youtube": "",
+    "category": "Hip-Hop",
+    "key": 0
+  },
+  {
+    "id": 84,
+    "title": "Stacy's Mom",
+    "artist": "Fountains of Wayne",
+    "youtube": "",
+    "category": "Rock",
+    "key": 0
+  },
+  {
+    "id": 85,
+    "title": "What Makes You Beautiful",
+    "artist": "One Direction",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 86,
+    "title": "Don't You Want Me",
+    "artist": "Human League",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 87,
+    "title": "Nice & Slow",
+    "artist": "Usher",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 88,
+    "title": "Dancing in the Dark",
+    "artist": "Bruce Springsteen",
+    "youtube": "",
+    "category": "Rock",
+    "key": 0
+  },
+  {
+    "id": 89,
+    "title": "In Da Club",
+    "artist": "50 Cent",
+    "youtube": "",
+    "category": "Hip-Hop",
+    "key": 0
+  },
+  {
+    "id": 90,
+    "title": "This Is How We Do It",
+    "artist": "Montell Jordan",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 91,
+    "title": "Tik Tok",
+    "artist": "Kesha",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  },
+  {
+    "id": 92,
+    "title": "Chicken Fried",
+    "artist": "Zac Brown Band",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 93,
+    "title": "Highway to Hell",
+    "artist": "AC/DC",
+    "youtube": "",
+    "category": "Rock",
+    "key": 0
+  },
+  {
+    "id": 94,
+    "title": "Rasputin",
+    "artist": "Boney M",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 95,
+    "title": "Dreams",
+    "artist": "Fleetwood Mac",
+    "youtube": "",
+    "category": "Classics",
+    "key": 0
+  },
+  {
+    "id": 96,
+    "title": "Take On Me",
+    "artist": "a-ha",
+    "youtube": "",
+    "category": "Pop",
+    "key": 0
+  }
+]
