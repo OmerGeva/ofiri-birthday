@@ -388,11 +388,15 @@
             }
 
             // --- QR visibility ---
+            let isLive = false;
+
             socket.on("qrVisible", (visible) => {
+                isLive = visible;
                 document.getElementById("idle-qr").classList.toggle("hidden", !visible);
                 document.getElementById("idle-waiting").classList.toggle("hidden", visible);
                 const sidebarQr = document.getElementById("sidebar-qr");
                 if (sidebarQr) sidebarQr.classList.toggle("hidden", !visible);
+                render();
             });
 
             // --- State Handling ---
@@ -404,7 +408,7 @@
             function render() {
                 const { currentSong, queue } = currentState;
 
-                if (currentSong) {
+                if (currentSong && isLive) {
                     document
                         .getElementById("idle-screen")
                         .classList.add("hidden");
