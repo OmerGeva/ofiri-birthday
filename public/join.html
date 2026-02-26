@@ -408,7 +408,7 @@
             fetch("/api/songs")
                 .then((r) => r.json())
                 .then((data) => {
-                    songs = data;
+                    songs = data.filter((s) => s.youtube);
                     renderCategories();
                     filterSongs();
                 });

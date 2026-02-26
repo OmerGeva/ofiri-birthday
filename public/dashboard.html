@@ -215,6 +215,7 @@
                                     <th>Artist</th>
                                     <th>Category</th>
                                     <th>YouTube</th>
+                                    <th>Key</th>
                                     <th>Fav</th>
                                     <th></th>
                                 </tr>
@@ -357,7 +358,7 @@
                 const cards = document.getElementById("songs-cards");
                 if (filtered.length === 0) {
                     tbody.innerHTML =
-                        '<tr><td colspan="7" class="text-center text-[#bdb3a5] py-8">No songs found</td></tr>';
+                        '<tr><td colspan="8" class="text-center text-[#bdb3a5] py-8">No songs found</td></tr>';
                     cards.innerHTML =
                         '<p class="text-center text-[#bdb3a5] py-8">No songs found</p>';
                 } else {
@@ -370,7 +371,8 @@
             <td class="font-semibold">${escapeHtml(s.title)}</td>
             <td class="text-[#6b5e50]">${escapeHtml(s.artist)}</td>
             <td><span class="badge bg-[#fef3e2] text-[#D97757]">${escapeHtml(s.category || "—")}</span></td>
-            <td class="text-xs text-[#bdb3a5] max-w-[120px] truncate">${s.youtube ? escapeHtml(s.youtube) : '<span class="text-[#d4c9bc]">—</span>'}</td>
+            <td class="text-xs max-w-[160px]"><input class="form-input w-full text-xs" style="padding:5px 8px;" value="${escapeHtml(s.youtube || '')}" placeholder="YouTube ID/URL" onchange="updateSong(${s.id}, 'youtube', this.value)"></td>
+            <td class="text-xs"><input class="form-input text-xs" style="padding:5px 8px;width:50px;" type="number" min="0" value="${s.key || 0}" onchange="updateSong(${s.id}, 'key', parseInt(this.value)||0)"></td>
             <td><button class="fav-btn" onclick="toggleFav(${s.id}, ${!s.favorite})" style="cursor:pointer;font-size:18px;background:none;border:none;" title="Toggle favorite">${s.favorite ? '<span class="text-red-400">&#9829;</span>' : '<span class="text-[#d4c9bc]">&#9825;</span>'}</button></td>
             <td><button class="del-btn" onclick="deleteSong(${s.id})">Delete</button></td>
           </tr>
@@ -382,14 +384,20 @@
                     cards.innerHTML = filtered
                         .map(
                             (s) => `
-          <div class="request-card flex items-center gap-3">
-            <div class="flex-1 min-w-0">
-              <p class="font-bold text-[15px] leading-tight">${s.favorite ? '<span class="text-red-400 mr-1">&#9829;</span>' : ''}${escapeHtml(s.title)}</p>
-              <p class="text-xs text-[#a89b8c] mt-0.5">${escapeHtml(s.artist)}</p>
-              <span class="badge bg-[#fef3e2] text-[#D97757] mt-1 inline-block">${escapeHtml(s.category || "—")}</span>
+          <div class="request-card">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="flex-1 min-w-0">
+                <p class="font-bold text-[15px] leading-tight">${s.favorite ? '<span class="text-red-400 mr-1">&#9829;</span>' : ''}${escapeHtml(s.title)}</p>
+                <p class="text-xs text-[#a89b8c] mt-0.5">${escapeHtml(s.artist)}</p>
+                <span class="badge bg-[#fef3e2] text-[#D97757] mt-1 inline-block">${escapeHtml(s.category || "—")}</span>
+              </div>
+              <button onclick="toggleFav(${s.id}, ${!s.favorite})" style="font-size:22px;background:none;border:none;cursor:pointer;padding:4px;">${s.favorite ? '<span class="text-red-400">&#9829;</span>' : '<span class="text-[#d4c9bc]">&#9825;</span>'}</button>
+              <button class="del-btn" onclick="deleteSong(${s.id})">Del</button>
             </div>
-            <button onclick="toggleFav(${s.id}, ${!s.favorite})" style="font-size:22px;background:none;border:none;cursor:pointer;padding:4px;" title="Toggle favorite">${s.favorite ? '<span class="text-red-400">&#9829;</span>' : '<span class="text-[#d4c9bc]">&#9825;</span>'}</button>
-            <button class="del-btn" onclick="deleteSong(${s.id})">Del</button>
+            <div class="flex gap-2">
+              <input class="form-input flex-1 text-xs" style="padding:6px 8px;" value="${escapeHtml(s.youtube || '')}" placeholder="YouTube ID/URL" onchange="updateSong(${s.id}, 'youtube', this.value)">
+              <input class="form-input text-xs" style="padding:6px 8px;width:55px;" type="number" min="0" value="${s.key || 0}" placeholder="Key" onchange="updateSong(${s.id}, 'key', parseInt(this.value)||0)">
+            </div>
           </div>
         `,
                         )
@@ -413,6 +421,16 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ favorite: fav }),
                 });
+                loadSongs();
+            }
+
+            async function updateSong(id, field, value) {
+                await fetch(`/api/songs/${id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ [field]: value }),
+                });
+                showToast("Updated!");
                 loadSongs();
             }
 
