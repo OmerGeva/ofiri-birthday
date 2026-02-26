@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <title>Dashboard - Ofir's Karaoke</title>
         <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
         <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"
             rel="stylesheet"
@@ -163,9 +164,12 @@
                 <h1 class="text-xl sm:text-2xl font-black">
                     Ofir's Karaoke Dashboard
                 </h1>
-                <p class="text-sm text-[#a89b8c] mb-3">
-                    Manage songs, view requests
-                </p>
+                <div class="flex items-center gap-3 mb-3">
+                    <p class="text-sm text-[#a89b8c] flex-1">Manage songs, view requests</p>
+                    <button id="qr-toggle" onclick="toggleQR()" class="tab-btn whitespace-nowrap text-xs" style="padding:6px 14px;">
+                        QR: OFF
+                    </button>
+                </div>
                 <div class="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
                     <button
                         class="tab-btn active whitespace-nowrap"
@@ -312,8 +316,21 @@
         <div id="toast" class="toast"></div>
 
         <script>
+            const socket = io();
+            let qrVisible = false;
             let allSongs = [];
             let allRequests = [];
+
+            socket.on('qrVisible', (visible) => {
+                qrVisible = visible;
+                const btn = document.getElementById('qr-toggle');
+                btn.textContent = visible ? 'QR: ON' : 'QR: OFF';
+                btn.classList.toggle('active', visible);
+            });
+
+            function toggleQR() {
+                socket.emit('setQrVisible', !qrVisible);
+            }
 
             // --- Tab switching ---
             function switchTab(tab) {

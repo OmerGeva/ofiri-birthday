@@ -199,10 +199,15 @@
                         Grab a drink, pick a song, grab the mic.
                     </p>
                 </div>
-                <div class="bg-white p-4 rounded-2xl qr-box mt-4">
-                    <img src="/qr.png" alt="QR Code" class="w-[220px] h-[220px] object-contain">
+                <div id="idle-qr" class="hidden">
+                    <div class="bg-white p-4 rounded-2xl qr-box mt-4">
+                        <img src="/qr.png" alt="QR Code" class="w-[220px] h-[220px] object-contain">
+                    </div>
+                    <p class="text-white/30 text-sm animate-pulse mt-4">
+                        Scan to pick a song!
+                    </p>
                 </div>
-                <p class="text-white/30 text-sm animate-pulse">
+                <p id="idle-waiting" class="text-white/30 text-sm animate-pulse mt-4">
                     Waiting for the first brave soul...
                 </p>
             </div>
@@ -276,7 +281,8 @@
                     >
                         <!-- QR -->
                         <div
-                            class="flex flex-col items-center p-4 border-b border-white/10"
+                            id="sidebar-qr"
+                            class="flex flex-col items-center p-4 border-b border-white/10 hidden"
                         >
                             <div class="bg-white p-2 rounded-xl">
                                 <img src="/qr.png" alt="QR Code" class="w-[130px] h-[130px] object-contain">
@@ -380,6 +386,14 @@
                 );
                 return match ? match[1] : url.length === 11 ? url : null;
             }
+
+            // --- QR visibility ---
+            socket.on("qrVisible", (visible) => {
+                document.getElementById("idle-qr").classList.toggle("hidden", !visible);
+                document.getElementById("idle-waiting").classList.toggle("hidden", visible);
+                const sidebarQr = document.getElementById("sidebar-qr");
+                if (sidebarQr) sidebarQr.classList.toggle("hidden", !visible);
+            });
 
             // --- State Handling ---
             socket.on("state", (state) => {

@@ -250,6 +250,27 @@
                 opacity: 0.35;
             }
 
+            /* Emoji picker */
+            .emoji-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 22px;
+                border-radius: 12px;
+                border: 2px solid #e5ddd3;
+                background: white;
+                cursor: pointer;
+                transition: all 0.15s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .emoji-btn.selected {
+                border-color: #D97757;
+                background: #FFF4E6;
+                transform: scale(1.15);
+            }
+
             /* Queue badge */
             .q-badge {
                 background: #d97757;
@@ -271,7 +292,7 @@
         <div id="name-screen" class="name-screen">
             <div class="text-6xl mb-5">🎤</div>
             <h1 class="text-2xl font-black mb-1">Ofir's Karaoke</h1>
-            <p class="text-sm text-[#a89b8c] mb-8">What's your name?</p>
+            <p class="text-sm text-[#a89b8c] mb-6">What's your name?</p>
             <input
                 id="name-input"
                 type="text"
@@ -280,6 +301,8 @@
                 autocomplete="off"
                 autocapitalize="words"
             />
+            <p class="text-sm text-[#a89b8c] mb-2">Pick your emoji</p>
+            <div class="flex gap-2 flex-wrap justify-center mb-6" id="emoji-picker"></div>
             <button id="go-btn" class="go-btn" onclick="saveName()" disabled>
                 Let's Go!
             </button>
@@ -372,22 +395,41 @@
             let currentCategory = "all";
             let currentState = { queue: [], currentSong: null };
 
+            // --- Emoji picker ---
+            const emojis = ['🎤', '🎵', '🔥', '💃', '🕺', '🎶', '🍷', '👑', '🦩', '🌟', '🎸', '🫶'];
+            let selectedEmoji = localStorage.getItem("karaoke-emoji") || "";
+
+            const emojiPicker = document.getElementById("emoji-picker");
+            emojiPicker.innerHTML = emojis.map(e =>
+                `<button type="button" class="emoji-btn ${e === selectedEmoji ? 'selected' : ''}" onclick="pickEmoji('${e}')">${e}</button>`
+            ).join('');
+
+            function pickEmoji(e) {
+                selectedEmoji = e;
+                document.querySelectorAll('.emoji-btn').forEach(b =>
+                    b.classList.toggle('selected', b.textContent === e)
+                );
+                updateGoBtn();
+            }
+
             // --- Name handling ---
             const nameInput = document.getElementById("name-input");
             const goBtn = document.getElementById("go-btn");
 
-            nameInput.value = userName;
-            goBtn.disabled = !userName.trim();
+            nameInput.value = userName.replace(/^[\p{Emoji}\uFE0F]+\s*/u, '');
+            updateGoBtn();
 
-            nameInput.addEventListener("input", () => {
-                goBtn.disabled = !nameInput.value.trim();
-            });
+            function updateGoBtn() {
+                goBtn.disabled = !nameInput.value.trim() || !selectedEmoji;
+            }
+
+            nameInput.addEventListener("input", updateGoBtn);
             nameInput.addEventListener("keydown", (e) => {
-                if (e.key === "Enter" && nameInput.value.trim()) saveName();
+                if (e.key === "Enter" && nameInput.value.trim() && selectedEmoji) saveName();
             });
 
             // Auto-skip name screen if already set
-            if (userName) {
+            if (userName && selectedEmoji) {
                 document.getElementById("name-screen").classList.add("hidden");
                 document
                     .getElementById("main-screen")
@@ -395,9 +437,11 @@
             }
 
             function saveName() {
-                userName = nameInput.value.trim();
-                if (!userName) return;
+                const raw = nameInput.value.trim();
+                if (!raw || !selectedEmoji) return;
+                userName = `${selectedEmoji} ${raw}`;
                 localStorage.setItem("karaoke-name", userName);
+                localStorage.setItem("karaoke-emoji", selectedEmoji);
                 document.getElementById("name-screen").classList.add("hidden");
                 document
                     .getElementById("main-screen")
@@ -424,7 +468,8 @@
                 document.getElementById("categories").innerHTML = cats
                     .map((c) => {
                         const val = c === "All" ? "all" : c;
-                        return `<button class="cat-pill ${val === currentCategory ? "active" : ""}" onclick="setCategory('${val}')">${c}</button>`;
+                        const safeVal = val.replace(/'/g, "\\'");
+                        return `<button class="cat-pill ${val === currentCategory ? "active" : ""}" onclick="setCategory('${safeVal}')">${c}</button>`;
                     })
                     .join("");
             }

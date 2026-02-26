@@ -35,6 +35,12 @@ async function initDB() {
       timestamp TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS app_state (
+      key TEXT PRIMARY KEY,
+      value JSONB NOT NULL DEFAULT '{}'
+    )
+  `);
 
   // Seed songs from songs.json if table is empty
   const { rows } = await pool.query('SELECT COUNT(*) FROM songs');
@@ -52,11 +58,31 @@ async function initDB() {
       console.log('  No songs.json to seed from (or error reading it)');
     }
   }
+
+  // Initialize state keys if missing
+  await pool.query(`INSERT INTO app_state (key, value) VALUES ('queue', '[]') ON CONFLICT (key) DO NOTHING`);
+  await pool.query(`INSERT INTO app_state (key, value) VALUES ('currentSong', 'null') ON CONFLICT (key) DO NOTHING`);
+  await pool.query(`INSERT INTO app_state (key, value) VALUES ('qrVisible', 'false') ON CONFLICT (key) DO NOTHING`);
 }
 
-// --- Queue state (in-memory, ephemeral) ---
-let queue = [];
-let currentSong = null;
+// --- State helpers ---
+async function getState(key) {
+  const { rows } = await pool.query('SELECT value FROM app_state WHERE key = $1', [key]);
+  return rows.length > 0 ? rows[0].value : null;
+}
+
+async function setState(key, value) {
+  await pool.query(
+    'INSERT INTO app_state (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
+    [key, JSON.stringify(value)]
+  );
+}
+
+async function getFullState() {
+  const queue = await getState('queue') || [];
+  const currentSong = await getState('currentSong') || null;
+  return { queue, currentSong };
+}
 
 // --- Helpers ---
 function getLocalIP() {
@@ -154,11 +180,21 @@ app.post('/api/requests', async (req, res) => {
 
 // --- Socket.io ---
 io.on('connection', async (socket) => {
-  socket.emit('state', { queue, currentSong });
+  const state = await getFullState();
+  socket.emit('state', state);
+  socket.emit('qrVisible', await getState('qrVisible'));
+
+  socket.on('setQrVisible', async (visible) => {
+    await setState('qrVisible', !!visible);
+    io.emit('qrVisible', !!visible);
+  });
 
   socket.on('addToQueue', async ({ songId, name }) => {
     const { rows } = await pool.query('SELECT * FROM songs WHERE id = $1', [songId]);
     if (rows.length === 0) return;
+
+    const queue = await getState('queue') || [];
+    let currentSong = await getState('currentSong');
 
     const entry = { song: songRow(rows[0]), requestedBy: name, id: Date.now() };
     queue.push(entry);
@@ -167,23 +203,31 @@ io.on('connection', async (socket) => {
       currentSong = queue.shift();
     }
 
+    await setState('queue', queue);
+    await setState('currentSong', currentSong);
     io.emit('state', { queue, currentSong });
   });
 
-  socket.on('nextSong', () => {
-    currentSong = queue.length > 0 ? queue.shift() : null;
+  socket.on('nextSong', async () => {
+    const queue = await getState('queue') || [];
+    const currentSong = queue.length > 0 ? queue.shift() : null;
+    await setState('queue', queue);
+    await setState('currentSong', currentSong);
     io.emit('state', { queue, currentSong });
   });
 
-  socket.on('removeSong', (entryId) => {
+  socket.on('removeSong', async (entryId) => {
+    let queue = await getState('queue') || [];
     queue = queue.filter(e => e.id !== entryId);
+    await setState('queue', queue);
+    const currentSong = await getState('currentSong');
     io.emit('state', { queue, currentSong });
   });
 
-  socket.on('clearQueue', () => {
-    queue = [];
-    currentSong = null;
-    io.emit('state', { queue, currentSong });
+  socket.on('clearQueue', async () => {
+    await setState('queue', []);
+    await setState('currentSong', null);
+    io.emit('state', { queue: [], currentSong: null });
   });
 });
 
