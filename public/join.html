@@ -568,7 +568,10 @@
                     html =
                         '<p class="text-center text-[#bdb3a5] py-10">No songs in queue yet.<br>Pick one and be a legend.</p>';
                 } else {
-                    html += queue
+                    const showLimit = 10;
+                    const visible = queue.slice(0, showLimit);
+                    const remaining = queue.length - showLimit;
+                    html += visible
                         .map(
                             (entry, i) => `
           <div class="song-card">
@@ -580,7 +583,7 @@
           </div>
         `,
                         )
-                        .join("");
+                        .join("") + (remaining > 0 ? `<p class="text-center text-[#bdb3a5] py-3 text-sm">+${remaining} more</p>` : "");
                 }
 
                 document.getElementById("queue-content").innerHTML = html;

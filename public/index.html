@@ -457,7 +457,10 @@
                         queue.length +
                         " song" +
                         (queue.length !== 1 ? "s" : "");
-                    queueList.innerHTML = queue
+                    const showLimit = 10;
+                    const visible = queue.slice(0, showLimit);
+                    const remaining = queue.length - showLimit;
+                    queueList.innerHTML = visible
                         .map(
                             (entry, i) => `
           <div class="queue-item">
@@ -471,7 +474,7 @@
           </div>
         `,
                         )
-                        .join("");
+                        .join("") + (remaining > 0 ? `<p class="text-white/25 text-xs text-center py-2">+${remaining} more</p>` : "");
                 }
             }
 

@@ -387,7 +387,10 @@
             <td class="text-[#bdb3a5] text-xs font-mono">${s.id}</td>
             <td class="font-semibold">${escapeHtml(s.title)}</td>
             <td class="text-[#6b5e50]">${escapeHtml(s.artist)}</td>
-            <td><span class="badge bg-[#fef3e2] text-[#D97757]">${escapeHtml(s.category || "—")}</span></td>
+            <td><select class="form-input text-xs" style="padding:5px 8px;" onchange="updateSong(${s.id}, 'category', this.value)">
+              <option value="">—</option>
+              ${['Pop','Rock','Classics','New Hits','Duets','Soundtracks','Hip-Hop',"Ofir's Faves"].map(c => `<option value="${c}" ${s.category === c ? 'selected' : ''}>${c}</option>`).join('')}
+            </select></td>
             <td class="text-xs max-w-[160px]"><input class="form-input w-full text-xs" style="padding:5px 8px;" value="${escapeHtml(s.youtube || '')}" placeholder="YouTube ID/URL" onchange="updateSong(${s.id}, 'youtube', this.value)"></td>
             <td class="text-xs"><input class="form-input text-xs" style="padding:5px 8px;width:50px;" type="number" min="0" value="${s.key || 0}" onchange="updateSong(${s.id}, 'key', parseInt(this.value)||0)"></td>
             <td><button class="fav-btn" onclick="toggleFav(${s.id}, ${!s.favorite})" style="cursor:pointer;font-size:18px;background:none;border:none;" title="Toggle favorite">${s.favorite ? '<span class="text-red-400">&#9829;</span>' : '<span class="text-[#d4c9bc]">&#9825;</span>'}</button></td>
@@ -406,7 +409,10 @@
               <div class="flex-1 min-w-0">
                 <p class="font-bold text-[15px] leading-tight">${s.favorite ? '<span class="text-red-400 mr-1">&#9829;</span>' : ''}${escapeHtml(s.title)}</p>
                 <p class="text-xs text-[#a89b8c] mt-0.5">${escapeHtml(s.artist)}</p>
-                <span class="badge bg-[#fef3e2] text-[#D97757] mt-1 inline-block">${escapeHtml(s.category || "—")}</span>
+                <select class="form-input text-xs mt-1" style="padding:4px 8px;" onchange="updateSong(${s.id}, 'category', this.value)">
+                  <option value="">—</option>
+                  ${['Pop','Rock','Classics','New Hits','Duets','Soundtracks','Hip-Hop',"Ofir's Faves"].map(c => `<option value="${c}" ${s.category === c ? 'selected' : ''}>${c}</option>`).join('')}
+                </select>
               </div>
               <button onclick="toggleFav(${s.id}, ${!s.favorite})" style="font-size:22px;background:none;border:none;cursor:pointer;padding:4px;">${s.favorite ? '<span class="text-red-400">&#9829;</span>' : '<span class="text-[#d4c9bc]">&#9825;</span>'}</button>
               <button class="del-btn" onclick="deleteSong(${s.id})">Del</button>
