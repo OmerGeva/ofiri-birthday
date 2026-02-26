@@ -2,65 +2,61 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const os = require('os');
-const fs = require('fs');
 const path = require('path');
+const { Pool } = require('pg');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// --- Dynamic song loading (no restart needed) ---
-const SONGS_FILE = path.join(__dirname, 'songs.json');
+// --- Database ---
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+});
 
-function loadSongs() {
-  try {
-    return JSON.parse(fs.readFileSync(SONGS_FILE, 'utf8'));
-  } catch {
-    return [];
+async function initDB() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS songs (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      artist TEXT NOT NULL,
+      youtube TEXT DEFAULT '',
+      category TEXT DEFAULT '',
+      favorite BOOLEAN DEFAULT false,
+      key_seconds INTEGER DEFAULT 0
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS requests (
+      id SERIAL PRIMARY KEY,
+      song TEXT NOT NULL,
+      timestamp TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
+  // Seed songs from songs.json if table is empty
+  const { rows } = await pool.query('SELECT COUNT(*) FROM songs');
+  if (parseInt(rows[0].count) === 0) {
+    try {
+      const seeds = JSON.parse(fs.readFileSync(path.join(__dirname, 'songs.json'), 'utf8'));
+      for (const s of seeds) {
+        await pool.query(
+          'INSERT INTO songs (title, artist, youtube, category, favorite, key_seconds) VALUES ($1, $2, $3, $4, $5, $6)',
+          [s.title, s.artist, s.youtube || '', s.category || '', !!s.favorite, s.key || 0]
+        );
+      }
+      console.log(`  Seeded ${seeds.length} songs from songs.json`);
+    } catch (e) {
+      console.log('  No songs.json to seed from (or error reading it)');
+    }
   }
 }
 
-function saveSongs(songs) {
-  fs.writeFileSync(SONGS_FILE, JSON.stringify(songs, null, 2));
-}
-
-// --- Requests persistence ---
-const REQUESTS_FILE = path.join(__dirname, 'requests.json');
-
-function loadRequests() {
-  try {
-    return JSON.parse(fs.readFileSync(REQUESTS_FILE, 'utf8'));
-  } catch {
-    return [];
-  }
-}
-
-function saveRequests(requests) {
-  fs.writeFileSync(REQUESTS_FILE, JSON.stringify(requests, null, 2));
-}
-
-// --- File-based persistence ---
-const STATE_FILE = path.join(__dirname, 'state.json');
+// --- Queue state (in-memory, ephemeral) ---
 let queue = [];
 let currentSong = null;
-
-function loadState() {
-  try {
-    const data = fs.readFileSync(STATE_FILE, 'utf8');
-    const state = JSON.parse(data);
-    queue = state.queue || [];
-    currentSong = state.currentSong || null;
-  } catch {
-    queue = [];
-    currentSong = null;
-  }
-}
-
-function saveState() {
-  fs.writeFileSync(STATE_FILE, JSON.stringify({ queue, currentSong }, null, 2));
-}
-
-loadState();
 
 // --- Helpers ---
 function getLocalIP() {
@@ -75,106 +71,136 @@ function getLocalIP() {
   return 'localhost';
 }
 
+function songRow(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    artist: row.artist,
+    youtube: row.youtube,
+    category: row.category,
+    favorite: row.favorite,
+    key: row.key_seconds
+  };
+}
+
 // --- Static files ---
 const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- API ---
-app.get('/api/songs', (_req, res) => res.json(loadSongs()));
+app.get('/api/songs', async (_req, res) => {
+  const { rows } = await pool.query('SELECT * FROM songs ORDER BY id');
+  res.json(rows.map(songRow));
+});
+
 app.get('/api/ip', (_req, res) => res.json({ ip: getLocalIP(), port: PORT }));
 
-app.post('/api/songs', (req, res) => {
+app.post('/api/songs', async (req, res) => {
   const { title, artist, youtube, category, favorite, key } = req.body;
   if (!title || !artist) return res.status(400).json({ error: 'title and artist required' });
-  const songs = loadSongs();
-  const maxId = songs.reduce((max, s) => Math.max(max, s.id), 0);
-  const newSong = { id: maxId + 1, title, artist, youtube: youtube || '', category: category || '', favorite: !!favorite, key: parseInt(key) || 0 };
-  songs.push(newSong);
-  saveSongs(songs);
-  res.json(newSong);
+  const { rows } = await pool.query(
+    'INSERT INTO songs (title, artist, youtube, category, favorite, key_seconds) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+    [title, artist, youtube || '', category || '', !!favorite, parseInt(key) || 0]
+  );
+  res.json(songRow(rows[0]));
 });
 
-app.patch('/api/songs/:id', (req, res) => {
+app.patch('/api/songs/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
-  const songs = loadSongs();
-  const song = songs.find(s => s.id === id);
-  if (!song) return res.status(404).json({ error: 'song not found' });
-  Object.assign(song, req.body);
-  saveSongs(songs);
-  res.json(song);
+  const fields = [];
+  const values = [];
+  let i = 1;
+
+  if (req.body.title !== undefined) { fields.push(`title = $${i++}`); values.push(req.body.title); }
+  if (req.body.artist !== undefined) { fields.push(`artist = $${i++}`); values.push(req.body.artist); }
+  if (req.body.youtube !== undefined) { fields.push(`youtube = $${i++}`); values.push(req.body.youtube); }
+  if (req.body.category !== undefined) { fields.push(`category = $${i++}`); values.push(req.body.category); }
+  if (req.body.favorite !== undefined) { fields.push(`favorite = $${i++}`); values.push(!!req.body.favorite); }
+  if (req.body.key !== undefined) { fields.push(`key_seconds = $${i++}`); values.push(parseInt(req.body.key) || 0); }
+
+  if (fields.length === 0) return res.status(400).json({ error: 'no fields to update' });
+
+  values.push(id);
+  const { rows } = await pool.query(
+    `UPDATE songs SET ${fields.join(', ')} WHERE id = $${i} RETURNING *`,
+    values
+  );
+  if (rows.length === 0) return res.status(404).json({ error: 'song not found' });
+  res.json(songRow(rows[0]));
 });
 
-app.delete('/api/songs/:id', (req, res) => {
+app.delete('/api/songs/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
-  let songs = loadSongs();
-  const before = songs.length;
-  songs = songs.filter(s => s.id !== id);
-  if (songs.length === before) return res.status(404).json({ error: 'song not found' });
-  saveSongs(songs);
+  const { rowCount } = await pool.query('DELETE FROM songs WHERE id = $1', [id]);
+  if (rowCount === 0) return res.status(404).json({ error: 'song not found' });
   res.json({ ok: true });
 });
 
-app.get('/api/requests', (_req, res) => res.json(loadRequests()));
+app.get('/api/requests', async (_req, res) => {
+  const { rows } = await pool.query('SELECT * FROM requests ORDER BY id');
+  res.json(rows);
+});
 
-app.post('/api/requests', (req, res) => {
+app.post('/api/requests', async (req, res) => {
   const { song } = req.body;
   if (!song) return res.status(400).json({ error: 'song required' });
-  const requests = loadRequests();
-  const entry = { id: Date.now(), song, timestamp: new Date().toISOString() };
-  requests.push(entry);
-  saveRequests(requests);
-  res.json(entry);
+  const { rows } = await pool.query(
+    'INSERT INTO requests (song) VALUES ($1) RETURNING *',
+    [song]
+  );
+  res.json(rows[0]);
 });
 
 // --- Socket.io ---
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
   socket.emit('state', { queue, currentSong });
 
-  socket.on('addToQueue', ({ songId, name }) => {
-    const song = loadSongs().find(s => s.id === songId);
-    if (!song) return;
+  socket.on('addToQueue', async ({ songId, name }) => {
+    const { rows } = await pool.query('SELECT * FROM songs WHERE id = $1', [songId]);
+    if (rows.length === 0) return;
 
-    const entry = { song, requestedBy: name, id: Date.now() };
+    const entry = { song: songRow(rows[0]), requestedBy: name, id: Date.now() };
     queue.push(entry);
 
     if (!currentSong) {
       currentSong = queue.shift();
     }
 
-    saveState();
     io.emit('state', { queue, currentSong });
   });
 
   socket.on('nextSong', () => {
     currentSong = queue.length > 0 ? queue.shift() : null;
-    saveState();
     io.emit('state', { queue, currentSong });
   });
 
   socket.on('removeSong', (entryId) => {
     queue = queue.filter(e => e.id !== entryId);
-    saveState();
     io.emit('state', { queue, currentSong });
   });
 
   socket.on('clearQueue', () => {
     queue = [];
     currentSong = null;
-    saveState();
     io.emit('state', { queue, currentSong });
   });
 });
 
 // --- Start ---
-server.listen(PORT, '0.0.0.0', () => {
-  const ip = getLocalIP();
-  console.log('');
-  console.log('  🎤 Ofir\'s Karaoke Server is running!');
-  console.log('');
-  console.log(`  Display (open on TV):  http://localhost:${PORT}`);
-  console.log(`  Join (for phones):     http://${ip}:${PORT}/join.html`);
-  console.log(`  Request songs:         http://${ip}:${PORT}/request.html`);
-  console.log(`  Admin dashboard:       http://localhost:${PORT}/dashboard.html`);
-  console.log('');
+initDB().then(() => {
+  server.listen(PORT, '0.0.0.0', () => {
+    const ip = getLocalIP();
+    console.log('');
+    console.log('  🎤 Ofir\'s Karaoke Server is running!');
+    console.log('');
+    console.log(`  Display (open on TV):  http://localhost:${PORT}`);
+    console.log(`  Join (for phones):     http://${ip}:${PORT}/join.html`);
+    console.log(`  Request songs:         http://${ip}:${PORT}/request.html`);
+    console.log(`  Admin dashboard:       http://localhost:${PORT}/dashboard.html`);
+    console.log('');
+  });
+}).catch(err => {
+  console.error('Failed to initialize database:', err.message);
+  process.exit(1);
 });

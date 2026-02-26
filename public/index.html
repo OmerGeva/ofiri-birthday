@@ -6,7 +6,6 @@
         <title>Ofir's Karaoke Party</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
         <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"
             rel="stylesheet"
@@ -200,19 +199,8 @@
                         Grab a drink, pick a song, grab the mic.
                     </p>
                 </div>
-                <div
-                    class="bg-white p-4 rounded-2xl qr-box mt-4"
-                    id="idle-qr-wrap"
-                >
-                    <canvas id="idle-qr"></canvas>
-                    <div
-                        id="idle-qr-placeholder"
-                        class="w-[220px] h-[220px] bg-gray-100 rounded-lg flex items-center justify-center"
-                    >
-                        <span class="text-gray-400 font-bold text-sm"
-                            >QR CODE</span
-                        >
-                    </div>
+                <div class="bg-white p-4 rounded-2xl qr-box mt-4">
+                    <img src="/qr.png" alt="QR Code" class="w-[220px] h-[220px] object-contain">
                 </div>
                 <p class="text-white/30 text-sm animate-pulse">
                     Waiting for the first brave soul...
@@ -290,20 +278,8 @@
                         <div
                             class="flex flex-col items-center p-4 border-b border-white/10"
                         >
-                            <div
-                                class="bg-white p-2 rounded-xl"
-                                id="sidebar-qr-wrap"
-                            >
-                                <canvas id="sidebar-qr"></canvas>
-                                <div
-                                    id="sidebar-qr-placeholder"
-                                    class="w-[130px] h-[130px] bg-gray-100 rounded flex items-center justify-center"
-                                >
-                                    <span
-                                        class="text-gray-400 font-bold text-[10px]"
-                                        >QR CODE</span
-                                    >
-                                </div>
+                            <div class="bg-white p-2 rounded-xl">
+                                <img src="/qr.png" alt="QR Code" class="w-[130px] h-[130px] object-contain">
                             </div>
                             <p class="text-white/25 text-[11px] mt-2">
                                 Scan to add songs
@@ -405,46 +381,6 @@
                 return match ? match[1] : url.length === 11 ? url : null;
             }
 
-            // --- QR Code ---
-            async function generateQR() {
-                try {
-                    const res = await fetch("/api/ip");
-                    const { ip, port } = await res.json();
-                    const joinUrl = `http://${ip}:${port}/join.html`;
-
-                    await QRCode.toCanvas(
-                        document.getElementById("idle-qr"),
-                        joinUrl,
-                        {
-                            width: 220,
-                            margin: 0,
-                            color: { dark: "#1a1a2e", light: "#ffffff" },
-                        },
-                    );
-                    document.getElementById(
-                        "idle-qr-placeholder",
-                    ).style.display = "none";
-
-                    await QRCode.toCanvas(
-                        document.getElementById("sidebar-qr"),
-                        joinUrl,
-                        {
-                            width: 130,
-                            margin: 0,
-                            color: { dark: "#1a1a2e", light: "#ffffff" },
-                        },
-                    );
-                    document.getElementById(
-                        "sidebar-qr-placeholder",
-                    ).style.display = "none";
-                } catch (e) {
-                    console.error("QR generation failed:", e);
-                    document.getElementById("idle-qr").style.display = "none";
-                    document.getElementById("sidebar-qr").style.display =
-                        "none";
-                }
-            }
-
             // --- State Handling ---
             socket.on("state", (state) => {
                 currentState = state;
@@ -534,7 +470,6 @@
             }
 
             // --- Init ---
-            generateQR();
         </script>
     </body>
 </html>
